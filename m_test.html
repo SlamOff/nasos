@@ -1,0 +1,101 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>capture microphone audio into buffer</title>
+
+<script type="text/javascript" src="js/jquery.min.7.js"></script>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+<script type="text/javascript">
+//Uncaught TypeError: Failed to execute 'connect' on 'AudioNode': No function was found that matched the signature provided.
+$(document).ready(function(){
+
+
+navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+
+// get the context from the canvas to draw on
+    var ctx_x = $("#canvas").get()[0].getContext("2d");
+
+    // create a gradient for the fill. Note the strange
+    // offset, since the gradient is calculated based on
+    // the canvas, not the specific element we draw
+    var gradient = ctx_x.createLinearGradient(0,0,0,130);
+    gradient.addColorStop(1,'#000000');
+    gradient.addColorStop(0.75,'#ff0000');
+    gradient.addColorStop(0.25,'#ffff00');
+    gradient.addColorStop(0,'#ffffff');
+
+function getAverageVolume(array) {
+        var values = 0;
+        var average;
+
+        var length = array.length;
+
+        // get all the frequency amplitudes
+        for (var i = 0; i < length; i++) {
+            values += array[i];
+        }
+
+        average = values / length;
+        return average;
+    }
+
+navigator.getUserMedia(
+    { audio: true, video: false },
+    function (stream) {
+        var AudioContext = window.AudioContext || window.webkitAudioContext,
+            ctx = new AudioContext(),
+            source = ctx.createMediaStreamSource(stream),
+            analyser = ctx.createAnalyser(),
+            processor = ctx.createScriptProcessor(2048, 1, 1),
+            data,
+            chart,
+            dataSource;
+        
+        source.connect(analyser);
+        source.connect(processor);
+        //analyser.connect(ctx.destination);
+        processor.connect(ctx.destination);
+        
+        
+        data = new Uint8Array(analyser.frequencyBinCount);
+        processor.onaudioprocess = function (){
+             analyser.getByteFrequencyData(data);
+             
+
+             var average = getAverageVolume(data);
+
+             // clear the current state
+            ctx_x.clearRect(0, 0, 60, 130);
+
+            // set the fill style
+            ctx_x.fillStyle=gradient;
+
+            // create the meters
+            ctx_x.fillRect(0,130-average,25,130);
+            $('.level').text(average);
+
+             console.log(average);
+        }
+    },
+    function (error) {
+        //error processing
+    }
+);
+
+
+});
+
+</script>
+
+</head>
+<body>
+
+    <p>Eq</p>
+    <p>Level: <span class="level"></span></p>
+
+
+    <canvas id="canvas" width="60" height="130" style="display: block;"></canvas>
+
+</body>
+</html>

@@ -1,0 +1,327 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>capture drag</title>
+<style>
+	*,*:after,*:before {
+		box-sizing: border-box;
+	}
+	body {
+		margin: 0;
+		padding: 0 100px;
+	}
+	.pump {
+		margin: 0 auto;
+		position: relative;
+		/*overflow: hidden;*/
+		width: 555px;
+		height: 795px;
+
+	}
+	.pump_body {
+		/*border: 2px solid #000;*/
+		/*height: 595px;*/
+		max-width: 100%;
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		z-index: 2;
+		/*background-image: url("artboard.png");*/
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+	.pump_handle {
+		height: 285px;
+		position: absolute;
+		top: 0;
+		width: 100%;
+		z-index: 1;
+		cursor: pointer;
+	}
+	.pump_handle .vertical {
+		position: absolute;
+		height: 100%;
+		width: 10px;
+		left: 50%;
+		-webkit-transform: translateX(-50%);
+		-moz-transform: translateX(-50%);
+		-ms-transform: translateX(-50%);
+		transform: translateX(-50%);
+		background-image: url("vertical.png");
+	}
+	.pump_handle .horizontal {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		-webkit-transform: translateX(-50%);
+		-moz-transform: translateX(-50%);
+		-ms-transform: translateX(-50%);
+		transform: translateX(-50%);
+		width: 156px;
+		height: 33px;
+		background-image: url("horizontal.png");
+	}
+	.scale {
+		width: 20px;
+		height: 300px;
+		background-image: -webkit-linear-gradient(to top, #e60000, #5CC653);
+		background-image: -moz-linear-gradient(to top, #e60000, #5CC653);
+		background-image: -ms-linear-gradient(to top, #e60000, #5CC653);
+		background-image: linear-gradient(to top, #e60000, #5CC653);
+		position: relative;
+		float: left;
+	}
+	.scale:after {
+		content: "100%";
+		position: absolute;
+		top: -7px;
+		left: 105%;
+		display: table;
+		clear: both;
+	}
+	.scale:before {
+		content: "0";
+		position: absolute;
+		bottom: -7px;
+		left: 105%;
+	}
+	.scale .slider {
+		position: absolute;
+		bottom: 0;
+		width: 100%;
+		height: 2px;
+		background-color: #000;
+	}
+	.ball {
+		position: absolute;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+		background-image: url("baloon-7.png");
+		width: 180px;
+		height: 200px;
+		bottom: 140px;
+		left: -137px;
+		z-index: 2;
+	}
+	.message {
+		padding-left: 300px;
+	}
+</style>
+</head>
+<body>
+
+	<p>Прокачано: <span class="quantity">0</span></p>
+	<p>Level: <span class="level">0</span></p>
+	<div class="scale">
+		<div class="slider">
+			
+		</div>
+	</div>
+	<div class="message">
+		Игра идет
+	</div>
+
+
+	<div class="pump">
+		<div class="pump_handle">
+			<div class="vertical"></div>
+			<div class="horizontal"></div>
+		</div>
+		<div class="pump_body">
+			<img src="artboard2.png" alt="">
+		</div>
+		<div class="ball"></div>
+	</div>
+	
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+
+	<script type="text/javascript">
+		$(document).ready(function(){
+			var prevY = 0;
+			var prevY2 = 0;
+			var prevAmount = 0;
+			var moveTop = false;
+			var horizontal = document.querySelector('.horizontal');
+			var horizontalHeight = parseInt(getComputedStyle(horizontal).height);
+			var dragEl = document.querySelector('.pump_handle');
+			var totalAmount = 0;
+			var startBallWidth = parseInt(getComputedStyle(document.querySelector('.ball')).width);
+			var startBallHeight = parseInt(getComputedStyle(document.querySelector('.ball')).height);
+			var slider = document.querySelector('.slider');
+			var move;
+			var prevMove;
+			var isMove = true;
+			var status = document.querySelector('.message')
+			var MAX_AMOUNT = 5000;
+			var rating;
+			var ball = document.querySelector('.ball');
+			setInterval(function(){
+				if(prevMove == move && prevMove != undefined){
+					isMove = false;
+					console.log(rating);
+					status.innerHTML = 'Игра окончена';
+					ball.style.backgroundImage = 'url(baloon-7.png)';
+					if(rating > 49 && rating <= 100){
+						status.innerHTML = 'Игра окончена. Ваш бонус - ' + (rating - 50);
+					}
+					else if(rating > 100){
+						status.innerHTML = 'Игра окончена. Вы проиграли';
+					}
+				}
+				else {
+					//isMove = true;
+					console.log('качай , isMove = ' + isMove);
+				}
+				prevMove = move;
+			}, 800);
+			
+
+			
+
+
+			dragEl.onmousedown = function(e) {
+				if (e.which != 1) {
+					return false;
+				}
+				dragEl.style.position = 'absolute';
+				// if(isMove == false){
+				// 		//status.innerHTML = 'Игра закончена';
+				// 		return false;
+				// 	}
+
+
+
+				function moveEl(e) {
+					var windowOffset = $('.pump').position().top;
+					var pos = e.pageY - windowOffset;
+					// prevMove = move;
+					move = pos;
+
+					//console.log(isMove);
+					// console.log(isMove);
+					if(isMove == false){
+						
+						return false;
+					}
+
+				
+
+
+					if(pos < 0){
+						dragEl.style.top = 0;
+						pos = 0;
+					}
+					else if(pos >= (dragEl.offsetHeight - horizontalHeight)){
+						dragEl.style.top = (dragEl.offsetHeight - horizontalHeight) + 'px';
+						pos = dragEl.offsetHeight - horizontalHeight;
+					}
+					else{
+						dragEl.style.top = pos + 'px';
+					}
+
+					function getPrevY(prev){
+
+						if(prevY > parseInt(dragEl.style.top)){
+							moveTop = true;
+						}
+						else{
+							moveTop = false;
+						}
+						
+						if(!moveTop){
+							totalAmount += Math.abs(prevY - parseInt(dragEl.style.top));
+						}
+
+						prev = parseInt(dragEl.style.top);
+						prevY = prev;
+						prevY2 = prev;
+						
+						// console.log(message + 'prevY ::' + prev);
+						// console.log(message + 'drag ::' + parseInt(dragEl.style.top));
+						
+					}
+
+					getPrevY(prevY);
+
+					
+					document.querySelector('.quantity').innerHTML = totalAmount;
+
+					
+					//console.log(totalAmount);
+					
+					var currentSlider = Math.round(totalAmount / MAX_AMOUNT *200);
+					
+					var sliderHeight = parseInt(getComputedStyle(document.querySelector('.scale')).height);
+					
+
+					slider.style.bottom = totalAmount / MAX_AMOUNT * 600 + 'px';
+
+					if (currentSlider > 15 && currentSlider < 30){
+						ball.style.backgroundImage = 'url(baloon-6.png)';
+						ball.style.left = '-125px';
+					}
+					else if (currentSlider > 30 && currentSlider < 45){
+						ball.style.backgroundImage = 'url(baloon-5.png)';
+						ball.style.bottom = '135px';
+					}
+					else if (currentSlider > 45 && currentSlider < 60){
+						ball.style.backgroundImage = 'url(baloon-4.png)';
+						ball.style.left = '-107px';
+					}
+					else if (currentSlider > 60 && currentSlider < 75){
+						ball.style.backgroundImage = 'url(baloon-3.png)';
+						ball.style.bottom = '132px';
+					}
+					else if (currentSlider > 75 && currentSlider < 90){
+						ball.style.backgroundImage = 'url(baloon-2.png)';
+						ball.style.bottom = '128px';
+						ball.style.left = '-102px';
+					}
+					else if(currentSlider > 90){
+						ball.style.backgroundImage = 'url(baloon-1.png)';
+
+						getPrevY(prevY2);
+						currentSlider += Math.round(Math.random() * 3 + 0);
+						slider.style.bottom = currentSlider * sliderHeight / 100 + 'px';
+
+						if (parseInt(slider.style.bottom) > sliderHeight){
+							slider.style.bottom = sliderHeight + 'px';
+							ball.style.backgroundImage = 'url(baloon-8.png)';
+							ball.style.left = '-82px';
+							ball.style.bottom = '150px';
+							ball.innerHTML = 'Booom !!!';
+							document.querySelector('.level').innerHTML = 'over 100 %';
+							status.innerHTML = 'over 100 %';
+							rating = 101;
+							return;
+						}
+						else if(parseInt(slider.style.bottom) == sliderHeight){
+							ball.innerHTML = 'Top air Amount !!!';
+						}
+					}
+					rating = currentSlider;
+
+					document.querySelector('.level').innerHTML = currentSlider + ' %';
+					//console.log(currentSlider);
+					
+				}
+				
+				document.onmousemove = function(e) {
+					moveEl(e);
+				}
+
+				document.onmouseup = function() {
+					document.onmousemove = null;
+					document.onmouseup = null;
+				}
+			}
+			dragEl.ondragstart = function() {
+				return false;
+			};
+
+		});
+	</script>
+</body>
+</html>
